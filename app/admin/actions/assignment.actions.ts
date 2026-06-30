@@ -187,27 +187,35 @@ export async function seatLatecomers() {
 
         // Quick scoring function to find the best table for Members/Visitors
         // We want to avoid matching business categories
-        let bestTableId = round.tables[0]?.id;
+        let bestTableId: string | undefined = undefined;
         let bestScore = -Infinity;
 
         for (const t of round.tables) {
           let score = 0;
           
-          // Penalize for size to keep tables somewhat balanced
-          score -= (t.assignments.length * 10);
+          // PRIMARY: penalize heavily for size to keep tables balanced
+          // This ensures the smallest table is always preferred
+          score -= (t.assignments.length * 1000);
 
-          // Penalize for category collision
+          // SECONDARY: light penalty for category collision (tiebreaker only)
           for (const existingAssignment of t.assignments) {
             const existingCat = existingAssignment.user.businessCategory;
             if (existingCat && u.businessCategory && existingCat === u.businessCategory && existingCat !== "N/A") {
-              score -= 500;
+              score -= 50;
             }
           }
 
-          if (score > bestScore) {
+          // Use >= with random tiebreaker so equal-scoring tables get fair distribution
+          // instead of always defaulting to the first table
+          if (score > bestScore || (score === bestScore && Math.random() < 0.5)) {
             bestScore = score;
             bestTableId = t.id;
           }
+        }
+
+        // Fallback: if somehow no table was picked, use the first one
+        if (!bestTableId) {
+          bestTableId = round.tables[0]?.id;
         }
 
         if (bestTableId) {
