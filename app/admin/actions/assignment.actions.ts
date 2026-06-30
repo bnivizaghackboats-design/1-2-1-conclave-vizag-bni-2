@@ -3,8 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { requireAdmin, verifyDeletePassword, setSuccess, setError } from "./utils";
 
-
-
 export async function clearAssignments(formData: FormData) {
   await requireAdmin();
   const password = formData.get("password") as string;
