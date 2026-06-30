@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin, verifyDeletePassword, setSuccess, setError } from "./utils";
 
 
+
 export async function clearAssignments(formData: FormData) {
   await requireAdmin();
   const password = formData.get("password") as string;
@@ -80,15 +81,15 @@ export async function saveRoundChunk(payload: any, isFirstChunk: boolean) {
       if (slotData && slotData.length > 0) {
         await tx.slot.createMany({ data: slotData, skipDuplicates: true });
       }
-      
+
       if (roundData && roundData.length > 0) {
         await tx.round.createMany({ data: roundData });
       }
-      
+
       if (tableData && tableData.length > 0) {
         await tx.table.createMany({ data: tableData });
       }
-      
+
       if (assignmentData && assignmentData.length > 0) {
         await tx.tableAssignment.createMany({ data: assignmentData, skipDuplicates: true });
       }
@@ -128,7 +129,7 @@ export async function seatLatecomers() {
     // 2. Find all approved users who are NOT in the pending rounds
     // Filter out admins so they don't get seated at tables!
     const allUsers = await prisma.user.findMany({
-      where: { 
+      where: {
         isApproved: true,
         role: { not: "ADMIN" }
       },
@@ -191,7 +192,7 @@ export async function seatLatecomers() {
 
         for (const t of round.tables) {
           let score = 0;
-          
+
           // PRIMARY: penalize heavily for size to keep tables balanced
           // This ensures the smallest table is always preferred
           score -= (t.assignments.length * 1000);
@@ -223,7 +224,7 @@ export async function seatLatecomers() {
             tableId: bestTableId,
             isCaptain: u.role === "CAPTAIN"
           });
-          
+
           // Temporarily add them to the table's assignments so the next latecomer in the loop avoids them if same category
           const table = round.tables.find(t => t.id === bestTableId);
           if (table) {
